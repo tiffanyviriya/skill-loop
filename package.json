@@ -1,0 +1,24 @@
+{
+  "name": "skill-loop",
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @skill-loop/web",
+    "dev": "npm run dev -w @skill-loop/web",
+    "format": "prettier --write .",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:generate": "npm run db:generate -w @skill-loop/db",
+    "db:migrate": "npm run db:migrate -w @skill-loop/db",
+    "db:push": "npm run db:push -w @skill-loop/db",
+    "db:studio": "npm run db:studio -w @skill-loop/db"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3"
+  }
+}

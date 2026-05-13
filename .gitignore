@@ -1,0 +1,16 @@
+information/
+
+node_modules/
+.next/
+**/.next/
+.turbo/
+**/.turbo/
+dist/
+coverage/
+*.tsbuildinfo
+
+.env
+.env*.local
+!.env.example
+
+*.log
