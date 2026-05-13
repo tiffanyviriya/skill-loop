@@ -406,6 +406,38 @@
     @apply mb-0 text-sm text-ink-muted;
   }
 
+  .auth-page {
+    @apply min-h-screen bg-canvas py-20;
+  }
+
+  .auth-card {
+    @apply mx-auto mb-16 grid w-[min(980px,calc(100%_-_40px))] grid-cols-[1fr_420px] gap-8 rounded-2xl border-[3px] border-hairline bg-surface-1 p-10;
+    border-right-width: 5px;
+    border-bottom-width: 5px;
+  }
+
+  .auth-form {
+    @apply grid gap-4;
+  }
+
+  .auth-form label {
+    @apply grid gap-2 text-sm font-medium;
+  }
+
+  .auth-form input,
+  .auth-form select,
+  .auth-form textarea {
+    @apply rounded-lg bg-white px-3 py-3;
+  }
+
+  .auth-error {
+    @apply rounded-lg border-2 border-fin-orange bg-white px-3 py-2 text-sm text-fin-orange;
+  }
+
+  .auth-success {
+    @apply rounded-lg border-2 border-report-green bg-white px-3 py-2 text-sm text-report-green;
+  }
+
   .footer {
     @apply py-12 text-sm text-ink-subtle;
   }
@@ -449,5 +481,9 @@
 
   .cta-banner {
     @apply flex-col items-start p-8;
+  }
+
+  .auth-card {
+    @apply grid-cols-1 p-6;
   }
 }
