@@ -7,6 +7,10 @@ import { verifyPassword } from "../../../_lib/password";
 
 export const runtime = "nodejs";
 
+export function GET(request: Request) {
+  return NextResponse.redirect(new URL("/login", request.url), 303);
+}
+
 export async function POST(request: Request) {
   const form = await request.formData();
   const email = String(form.get("email") ?? "").trim().toLowerCase();
@@ -29,15 +33,27 @@ export async function POST(request: Request) {
     return response;
   }
 
-  const [user] = await db
-    .select({
-      id: users.id,
-      role: users.role,
-      passwordHash: users.passwordHash
-    })
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
+  let user:
+    | {
+        id: string;
+        role: "learner" | "mentor" | "business" | "admin";
+        passwordHash: string | null;
+      }
+    | undefined;
+
+  try {
+    [user] = await db
+      .select({
+        id: users.id,
+        role: users.role,
+        passwordHash: users.passwordHash
+      })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+  } catch {
+    return NextResponse.redirect(new URL("/login?error=server", request.url), 303);
+  }
 
   if (!user?.passwordHash || !verifyPassword(password, user.passwordHash)) {
     return NextResponse.redirect(new URL("/login?error=invalid", request.url), 303);

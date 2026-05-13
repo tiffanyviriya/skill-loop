@@ -7,6 +7,10 @@ export const runtime = "nodejs";
 
 const roles = new Set(["learner", "mentor", "business"]);
 
+export function GET(request: Request) {
+  return NextResponse.redirect(new URL("/register", request.url), 303);
+}
+
 export async function POST(request: Request) {
   const form = await request.formData();
   const name = String(form.get("name") ?? "").trim();
