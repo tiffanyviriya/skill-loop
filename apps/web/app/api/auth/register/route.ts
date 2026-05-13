@@ -23,14 +23,24 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/login?registered=seed-demo", request.url), 303);
   }
 
-  await db.insert(users).values({
-    name,
-    email,
-    passwordHash: hashPassword(password),
-    role,
-    tokenBalance: role === "business" ? 300 : 100,
-    trustScore: role === "admin" ? 100 : 50
-  });
+  try {
+    await db.insert(users).values({
+      name,
+      email,
+      passwordHash: hashPassword(password),
+      role,
+      tokenBalance: role === "business" ? 300 : 100,
+      trustScore: 50
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : "";
+
+    if (message.includes("duplicate") || message.includes("unique")) {
+      return NextResponse.redirect(new URL("/register?error=exists", request.url), 303);
+    }
+
+    return NextResponse.redirect(new URL("/register?error=server", request.url), 303);
+  }
 
   return NextResponse.redirect(new URL("/login?registered=1", request.url), 303);
 }

@@ -25,7 +25,9 @@ export default async function RegisterPage({
         </div>
 
         <form className="auth-form" action="/api/auth/register" method="post">
-          {params.error ? <p className="auth-error">Please complete all fields and try again.</p> : null}
+          {params.error === "invalid" ? <p className="auth-error">Please complete all fields and use a password with at least 8 characters.</p> : null}
+          {params.error === "exists" ? <p className="auth-error">That email is already registered. Try logging in instead.</p> : null}
+          {params.error === "server" ? <p className="auth-error">Account creation is temporarily unavailable. Please try again after the workspace is synced.</p> : null}
           <label>
             Name
             <input name="name" placeholder="Your name" required />
