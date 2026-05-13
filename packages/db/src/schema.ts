@@ -19,6 +19,7 @@ export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 120 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: text("password_hash"),
   role: userRole("role").notNull().default("learner"),
   tokenBalance: integer("token_balance").notNull().default(100),
   trustScore: integer("trust_score").notNull().default(50),

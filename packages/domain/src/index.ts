@@ -67,10 +67,61 @@ export type GovernanceRule = {
   detail: string;
 };
 
+export type UserRole = "learner" | "mentor" | "business" | "admin";
+
+export type DemoUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  tokenBalance: number;
+  trustScore: number;
+  demoPassword: string;
+};
+
+export const seedUsers: DemoUser[] = [
+  {
+    id: "11111111-1111-4111-8111-111111111111",
+    name: "Tiffany Chu",
+    email: "learner@skillloop.test",
+    role: "learner",
+    tokenBalance: 120,
+    trustScore: 88,
+    demoPassword: "skillloop123"
+  },
+  {
+    id: "22222222-2222-4222-8222-222222222222",
+    name: "Nadia Putri",
+    email: "mentor@skillloop.test",
+    role: "mentor",
+    tokenBalance: 260,
+    trustScore: 92,
+    demoPassword: "skillloop123"
+  },
+  {
+    id: "33333333-3333-4333-8333-333333333333",
+    name: "Roti Nusa",
+    email: "business@skillloop.test",
+    role: "business",
+    tokenBalance: 420,
+    trustScore: 81,
+    demoPassword: "skillloop123"
+  },
+  {
+    id: "44444444-4444-4444-8444-444444444444",
+    name: "Skill Loop Admin",
+    email: "admin@skillloop.test",
+    role: "admin",
+    tokenBalance: 0,
+    trustScore: 100,
+    demoPassword: "skillloop123"
+  }
+];
+
 export const seedSkills: Skill[] = [
   {
-    id: "skill-canva-umkm",
-    mentorId: "user-nadia",
+    id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    mentorId: "22222222-2222-4222-8222-222222222222",
     mentorName: "Nadia Putri",
     mentorBadge: "verified",
     mentorRating: 4.8,
@@ -85,8 +136,8 @@ export const seedSkills: Skill[] = [
     schedule: ["Friday, 15 May 2026 16:00", "Saturday, 16 May 2026 10:00", "Tuesday, 19 May 2026 19:00"]
   },
   {
-    id: "skill-excel-finance",
-    mentorId: "user-raka",
+    id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    mentorId: "55555555-5555-4555-8555-555555555555",
     mentorName: "Raka Santoso",
     mentorBadge: "verified",
     mentorRating: 4.7,
@@ -101,8 +152,8 @@ export const seedSkills: Skill[] = [
     schedule: ["Monday, 18 May 2026 19:00", "Wednesday, 20 May 2026 18:30", "Sunday, 24 May 2026 09:00"]
   },
   {
-    id: "skill-interview",
-    mentorId: "user-maya",
+    id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    mentorId: "66666666-6666-4666-8666-666666666666",
     mentorName: "Maya Chen",
     mentorBadge: "community",
     mentorRating: 4.9,
@@ -117,8 +168,8 @@ export const seedSkills: Skill[] = [
     schedule: ["Thursday, 21 May 2026 20:00", "Friday, 22 May 2026 13:00", "Monday, 25 May 2026 19:30"]
   },
   {
-    id: "skill-code-web",
-    mentorId: "user-dimas",
+    id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+    mentorId: "77777777-7777-4777-8777-777777777777",
     mentorName: "Dimas Pratama",
     mentorBadge: "verified",
     mentorRating: 4.6,
@@ -136,7 +187,7 @@ export const seedSkills: Skill[] = [
 
 export const seedProjects: BusinessProject[] = [
   {
-    id: "project-poster",
+    id: "88888888-8888-4888-8888-888888888888",
     businessName: "Roti Nusa",
     title: "Poster promo Ramadan",
     description: "A local bakery needs a social promo poster and WhatsApp catalog cover.",
@@ -146,7 +197,7 @@ export const seedProjects: BusinessProject[] = [
     status: "open"
   },
   {
-    id: "project-website",
+    id: "99999999-9999-4999-8999-999999999999",
     businessName: "Loop Cowork",
     title: "Simple profile website",
     description: "A community coworking space needs a one-page site for events and booking inquiries.",
@@ -156,7 +207,7 @@ export const seedProjects: BusinessProject[] = [
     status: "in_review"
   },
   {
-    id: "project-ads",
+    id: "12345678-1234-4234-8234-123456789abc",
     businessName: "Kain Kita",
     title: "Social ads setup",
     description: "An UMKM fashion seller needs help setting up Meta Ads audiences and first campaign.",
@@ -170,7 +221,7 @@ export const seedProjects: BusinessProject[] = [
 export const seedBookings: Booking[] = [
   {
     id: "booking-1",
-    skillId: "skill-canva-umkm",
+    skillId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     skillTitle: "Basic Canva for UMKM",
     learnerName: "Tiffany Chu",
     mentorName: "Nadia Putri",
@@ -180,7 +231,7 @@ export const seedBookings: Booking[] = [
   },
   {
     id: "booking-2",
-    skillId: "skill-excel-finance",
+    skillId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     skillTitle: "Excel Cashflow Basics",
     learnerName: "Tiffany Chu",
     mentorName: "Raka Santoso",
@@ -190,7 +241,7 @@ export const seedBookings: Booking[] = [
   },
   {
     id: "booking-3",
-    skillId: "skill-interview",
+    skillId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     skillTitle: "Interview Preparation Clinic",
     learnerName: "Ayu Lestari",
     mentorName: "Maya Chen",

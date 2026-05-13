@@ -8,6 +8,13 @@
       "when": 1778675239851,
       "tag": "0000_strong_moonstone",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778681912672,
+      "tag": "0001_goofy_stepford_cuckoos",
+      "breakpoints": true
     }
   ]
 }
