@@ -52,6 +52,15 @@ export async function POST(request: Request) {
       .where(eq(users.email, email))
       .limit(1);
   } catch {
+    const demoUser = seedUsers.find((seedUser) => seedUser.email === email && seedUser.demoPassword === password);
+
+    if (demoUser) {
+      const response = NextResponse.redirect(new URL(roleHomePath(demoUser.role), request.url), 303);
+      response.cookies.set(SESSION_COOKIE, demoUser.id, sessionCookieOptions());
+
+      return response;
+    }
+
     return NextResponse.redirect(new URL("/login?error=server", request.url), 303);
   }
 
