@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { BookOpen, Coins, PenLine, Star, Trophy } from "lucide-react";
 import { getMarketplaceSnapshot } from "@skill-loop/domain";
+import { requireUser } from "../../_lib/auth";
 import { PageIntro, PlatformShell } from "../../_components/shell";
 
-export default function LearnerDashboardPage() {
+export default async function LearnerDashboardPage() {
+  const user = await requireUser(["learner", "admin"]);
   const snapshot = getMarketplaceSnapshot();
   const completed = snapshot.bookings.filter((booking) => booking.status === "completed").length;
 
@@ -11,7 +13,7 @@ export default function LearnerDashboardPage() {
     <PlatformShell>
       <PageIntro
         eyebrow="Learner dashboard"
-        title="Track bookings, token balance, and learning momentum."
+        title={`Track bookings, token balance, and learning momentum, ${user.name}.`}
         description="This is the learner side of the platform loop: discover skills, spend tokens, complete sessions, and review mentors."
         action={<Link className="button-primary" href="/marketplace">Book another class</Link>}
       />

@@ -31,11 +31,11 @@ export default function HomePage() {
           <Link href="/admin">Admin</Link>
         </nav>
         <div className="nav-actions">
-          <Link className="button-tertiary" href="/dashboard/learner">
+          <Link className="button-tertiary" href="/login">
             Log in
           </Link>
-          <Link className="button-primary" href="/marketplace">
-            Start learning
+          <Link className="button-primary" href="/register">
+            Sign up
           </Link>
         </div>
       </header>

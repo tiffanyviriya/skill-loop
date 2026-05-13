@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { bookings, db } from "@skill-loop/db";
 import { getSkillById, seedBookings } from "@skill-loop/domain";
+import { getCurrentUser } from "../../_lib/auth";
 
 export const runtime = "nodejs";
 
@@ -19,9 +20,22 @@ export async function POST(request: Request) {
   const skillId = String(form.get("skillId") ?? "");
   const scheduleTime = String(form.get("scheduleTime") ?? "");
   const skill = getSkillById(skillId);
+  const user = await getCurrentUser();
 
   if (!skill) {
     return NextResponse.json({ ok: false, message: "Skill not found" }, { status: 404 });
+  }
+
+  if (!user) {
+    return NextResponse.redirect(new URL("/login", request.url), 303);
+  }
+
+  if (user.role !== "learner" && user.role !== "admin") {
+    return NextResponse.redirect(new URL("/marketplace?booking=learner-only", request.url), 303);
+  }
+
+  if (user.id === skill.mentorId) {
+    return NextResponse.redirect(new URL(`/marketplace/${skill.id}?booking=self-blocked`, request.url), 303);
   }
 
   if (!process.env.POSTGRES_URL) {
@@ -30,8 +44,8 @@ export async function POST(request: Request) {
 
   await db.insert(bookings).values({
     skillId: skill.id,
-    learnerId: "00000000-0000-0000-0000-000000000002",
-    mentorId: "00000000-0000-0000-0000-000000000003",
+    learnerId: user.id,
+    mentorId: skill.mentorId,
     scheduleTime: new Date(scheduleTime),
     status: "pending"
   });

@@ -1,8 +1,11 @@
 import { ShieldCheck, UserX } from "lucide-react";
 import { seedGovernanceRules, seedProjects, seedSkills } from "@skill-loop/domain";
+import { requireUser } from "../_lib/auth";
 import { PageIntro, PlatformShell } from "../_components/shell";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await requireUser(["admin"]);
+
   return (
     <PlatformShell>
       <PageIntro

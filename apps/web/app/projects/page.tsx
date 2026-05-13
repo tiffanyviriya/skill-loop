@@ -1,14 +1,19 @@
+import Link from "next/link";
 import { Building2, Send } from "lucide-react";
 import { seedProjects } from "@skill-loop/domain";
+import { getCurrentUser } from "../_lib/auth";
 import { PageIntro, PlatformShell } from "../_components/shell";
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const user = await getCurrentUser();
+
   return (
     <PlatformShell>
       <PageIntro
         eyebrow="Community Project Board"
         title="UMKM projects that need local skill and trusted talent."
         description="Businesses post project needs, mentors apply, and token rewards create local economic loops."
+        action={user?.role === "business" || user?.role === "admin" ? <span className="badge green">Project owner mode</span> : null}
       />
 
       <section className="container grid grid-cols-[1fr_360px] gap-4 pb-24 max-[900px]:grid-cols-1">
@@ -60,13 +65,20 @@ export default function ProjectsPage() {
         <aside className="project-card accent-orange">
           <p className="eyebrow">Post a project</p>
           <h2 className="card-title">Find local talent</h2>
-          <form className="grid gap-3" action="/api/projects" method="post">
-            <input className="rounded-lg border border-hairline px-3 py-3" name="title" placeholder="Project title" />
-            <input className="rounded-lg border border-hairline px-3 py-3" name="requiredSkill" placeholder="Required skill" />
-            <textarea className="min-h-28 rounded-lg border border-hairline px-3 py-3" name="description" placeholder="Project description" />
-            <input className="rounded-lg border border-hairline px-3 py-3" name="rewardToken" placeholder="Reward token" />
-            <button className="button-fin" type="submit">Post project</button>
-          </form>
+          {user?.role === "business" || user?.role === "admin" ? (
+            <form className="grid gap-3" action="/api/projects" method="post">
+              <input className="rounded-lg border border-hairline px-3 py-3" name="title" placeholder="Project title" />
+              <input className="rounded-lg border border-hairline px-3 py-3" name="requiredSkill" placeholder="Required skill" />
+              <textarea className="min-h-28 rounded-lg border border-hairline px-3 py-3" name="description" placeholder="Project description" />
+              <input className="rounded-lg border border-hairline px-3 py-3" name="rewardToken" placeholder="Reward token" />
+              <button className="button-fin" type="submit">Post project</button>
+            </form>
+          ) : (
+            <div className="grid gap-3">
+              <p className="text-sm leading-6 text-ink-muted">Log in as an UMKM / business account to post project needs and manage applicants.</p>
+              <Link className="button-primary" href="/login">Log in as business</Link>
+            </div>
+          )}
         </aside>
       </section>
     </PlatformShell>

@@ -2,11 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarCheck, Coins, ShieldCheck, Star } from "lucide-react";
 import { getSkillById } from "@skill-loop/domain";
+import { getCurrentUser } from "../../_lib/auth";
 import { PageIntro, PlatformShell } from "../../_components/shell";
 
 export default async function SkillDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const skill = getSkillById(id);
+  const user = await getCurrentUser();
 
   if (!skill) {
     notFound();
@@ -56,21 +58,33 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ id
             <span className="flex items-center gap-2"><Star size={18} className="text-report-blue" /> {skill.mentorRating} mentor rating</span>
             <span className="flex items-center gap-2"><ShieldCheck size={18} className="text-report-green" /> Tokens release after completion</span>
           </div>
-          <form className="grid gap-3" action="/api/bookings" method="post">
-            <input type="hidden" name="skillId" value={skill.id} />
-            <label className="grid gap-2 text-sm font-medium">
-              Schedule
-              <select className="rounded-lg border border-hairline bg-white px-3 py-3" name="scheduleTime">
-                {skill.schedule.map((schedule) => (
-                  <option key={schedule} value={schedule}>{schedule}</option>
-                ))}
-              </select>
-            </label>
-            <button className="button-primary" type="submit">
-              <CalendarCheck size={16} />
-              Book with tokens
-            </button>
-          </form>
+          {!user ? (
+            <Link className="button-primary" href="/login">Log in to book</Link>
+          ) : user.id === skill.mentorId ? (
+            <p className="rounded-lg border-2 border-hairline bg-canvas p-4 text-sm text-ink-muted">
+              This is your own class, so booking is disabled by platform governance.
+            </p>
+          ) : user.role !== "learner" && user.role !== "admin" ? (
+            <p className="rounded-lg border-2 border-hairline bg-canvas p-4 text-sm text-ink-muted">
+              Switch to a learner account to book sessions with tokens.
+            </p>
+          ) : (
+            <form className="grid gap-3" action="/api/bookings" method="post">
+              <input type="hidden" name="skillId" value={skill.id} />
+              <label className="grid gap-2 text-sm font-medium">
+                Schedule
+                <select className="rounded-lg border border-hairline bg-white px-3 py-3" name="scheduleTime">
+                  {skill.schedule.map((schedule) => (
+                    <option key={schedule} value={schedule}>{schedule}</option>
+                  ))}
+                </select>
+              </label>
+              <button className="button-primary" type="submit">
+                <CalendarCheck size={16} />
+                Book with tokens
+              </button>
+            </form>
+          )}
         </aside>
       </section>
     </PlatformShell>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { businessProjects, db } from "@skill-loop/db";
 import { seedProjects } from "@skill-loop/domain";
+import { getCurrentUser } from "../../_lib/auth";
 
 export const runtime = "nodejs";
 
@@ -20,13 +21,22 @@ export async function POST(request: Request) {
   const description = String(form.get("description") ?? "");
   const requiredSkill = String(form.get("requiredSkill") ?? "");
   const rewardToken = Number(form.get("rewardToken") ?? 0);
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return NextResponse.redirect(new URL("/login", request.url), 303);
+  }
+
+  if (user.role !== "business" && user.role !== "admin") {
+    return NextResponse.redirect(new URL("/projects?created=business-only", request.url), 303);
+  }
 
   if (!process.env.POSTGRES_URL) {
     return NextResponse.redirect(new URL("/projects?created=seed-demo", request.url), 303);
   }
 
   await db.insert(businessProjects).values({
-    businessId: "00000000-0000-0000-0000-000000000001",
+    businessId: user.id,
     title,
     description,
     requiredSkill,

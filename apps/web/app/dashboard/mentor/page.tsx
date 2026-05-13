@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { BadgeCheck, CalendarCheck, Coins, TrendingUp } from "lucide-react";
 import { seedBookings, seedLeaderboard, seedSkills } from "@skill-loop/domain";
+import { requireUser } from "../../_lib/auth";
 import { PageIntro, PlatformShell } from "../../_components/shell";
 
-export default function MentorDashboardPage() {
+export default async function MentorDashboardPage() {
+  const user = await requireUser(["mentor", "admin"]);
   const mentorSkills = seedSkills.filter((skill) => skill.mentorName === "Nadia Putri" || skill.mentorBadge === "verified");
   const upcomingBookings = seedBookings.filter((booking) => booking.status !== "completed");
 
@@ -11,7 +13,7 @@ export default function MentorDashboardPage() {
     <PlatformShell>
       <PageIntro
         eyebrow="Mentor dashboard"
-        title="Manage classes, complete sessions, and earn tokens."
+        title={`Manage classes, complete sessions, and earn tokens, ${user.name}.`}
         description="Mentors create classes, receive bookings, complete sessions, and grow their trust score."
         action={<Link className="button-fin" href="/marketplace">Publish class</Link>}
       />

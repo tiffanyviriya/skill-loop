@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { getCurrentUser, roleHomePath } from "../_lib/auth";
 
 const links = [
   { href: "/", label: "Home" },
@@ -10,7 +11,9 @@ const links = [
   { href: "/admin", label: "Admin" }
 ];
 
-export function PlatformShell({ children }: { children: ReactNode }) {
+export async function PlatformShell({ children }: { children: ReactNode }) {
+  const user = await getCurrentUser();
+
   return (
     <>
       <header className="top-nav">
@@ -26,12 +29,25 @@ export function PlatformShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="nav-actions">
-          <Link className="button-tertiary" href="/dashboard/learner">
-            Log in
-          </Link>
-          <Link className="button-primary" href="/marketplace">
-            Start learning
-          </Link>
+          {user ? (
+            <>
+              <Link className="button-tertiary" href={roleHomePath(user.role)}>
+                {user.name}
+              </Link>
+              <form action="/api/auth/logout" method="post">
+                <button className="button-primary" type="submit">Log out</button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link className="button-tertiary" href="/login">
+                Log in
+              </Link>
+              <Link className="button-primary" href="/register">
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </header>
       <main>{children}</main>
