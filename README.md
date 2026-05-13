@@ -13,6 +13,7 @@ The product direction comes from `PLAN.md`: this is not just a course catalog. I
 - Mentor dashboard at `/dashboard/mentor`.
 - UMKM project board at `/projects`.
 - Admin governance dashboard at `/admin`.
+- Authentication flow with login, register, logout, role redirects, and protected role dashboards.
 - API routes for skills, bookings, projects, applications, reviews, health checks, and mentor verification.
 
 ## Platform Loops
@@ -101,6 +102,50 @@ http://localhost:3000
 
 The app works with seeded domain data until a PostgreSQL database is connected.
 
+## Authentication
+
+Skill Loop includes a first-party role-based authentication flow.
+
+Routes:
+
+- `/login`
+- `/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `POST /api/auth/register`
+
+Roles:
+
+- `learner`
+- `mentor`
+- `business`
+- `admin`
+
+Role redirects:
+
+- Learners go to `/dashboard/learner`.
+- Mentors go to `/dashboard/mentor`.
+- Business users go to `/projects`.
+- Admins go to `/admin`.
+
+Demo accounts work when no database is connected:
+
+| Role | Email | Password |
+|---|---|---|
+| Learner | `learner@skillloop.test` | `skillloop123` |
+| Mentor | `mentor@skillloop.test` | `skillloop123` |
+| Business | `business@skillloop.test` | `skillloop123` |
+| Admin | `admin@skillloop.test` | `skillloop123` |
+
+Production behavior:
+
+- New users are stored in the `users` table.
+- Passwords are hashed before storage.
+- The session is stored in an HttpOnly cookie.
+- Learner and mentor dashboards are role protected.
+- Admin pages require the `admin` role.
+- Business-only project posting is guarded by role.
+
 ## Useful Scripts
 
 ```bash
@@ -136,6 +181,9 @@ When `POSTGRES_URL` is missing, API routes return seeded data or redirect in see
 - `POST /api/projects/applications`
 - `POST /api/reviews`
 - `POST /api/admin/mentor-verification`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `POST /api/auth/register`
 
 ## Governance Rules
 
