@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getCurrentUser, roleHomePath } from "../_lib/auth";
+import { NavMobile } from "./NavMobile";
 
 const links = [
   { href: "/", label: "Home" },
@@ -8,11 +9,12 @@ const links = [
   { href: "/projects", label: "UMKM Board" },
   { href: "/dashboard/learner", label: "Learner" },
   { href: "/dashboard/mentor", label: "Mentor" },
-  { href: "/admin", label: "Admin" }
+  { href: "/admin", label: "Admin" },
 ];
 
 export async function PlatformShell({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
+  const homePath = user ? roleHomePath(user.role) : undefined;
 
   return (
     <>
@@ -21,6 +23,8 @@ export async function PlatformShell({ children }: { children: ReactNode }) {
           <span className="brand-mark">S</span>
           <span>Skill Loop</span>
         </Link>
+
+        {/* Desktop nav links */}
         <nav className="nav-links" aria-label="Platform navigation">
           {links.map((link) => (
             <Link href={link.href} key={link.href}>
@@ -28,29 +32,60 @@ export async function PlatformShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="nav-actions">
-          {user ? (
-            <>
-              <Link className="button-tertiary" href={roleHomePath(user.role)}>
-                {user.name}
-              </Link>
-              <form action="/api/auth/logout" method="post">
-                <button className="button-primary" type="submit">Log out</button>
-              </form>
-            </>
-          ) : (
-            <>
-              <Link className="button-tertiary" href="/login">
-                Log in
-              </Link>
-              <Link className="button-primary" href="/register">
-                Sign up
-              </Link>
-            </>
-          )}
+
+        {/* Right side: desktop actions + mobile toggle share the same grid cell */}
+        <div className="flex items-center gap-3">
+          {/* Desktop auth actions (hidden on mobile via CSS) */}
+          <div className="nav-desktop-actions">
+            {user ? (
+              <>
+                <Link className="button-tertiary" href={homePath!}>
+                  {user.name}
+                </Link>
+                <form action="/api/auth/logout" method="post">
+                  <button className="button-primary" type="submit">Log out</button>
+                </form>
+              </>
+            ) : (
+              <>
+                <Link className="button-tertiary" href="/login">Log in</Link>
+                <Link className="button-primary" href="/register">Sign up</Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile hamburger — rendered as client component */}
+          <NavMobile
+            loggedIn={!!user}
+            userName={user?.name}
+            userHomePath={homePath}
+          />
         </div>
       </header>
+
       <main>{children}</main>
+
+      <footer className="footer">
+        <div className="footer-inner">
+          <div>
+            <Link className="brand" href="/">
+              <span className="brand-mark">S</span>
+              <span>Skill Loop</span>
+            </Link>
+            <p className="mt-2 text-xs text-ink-subtle">
+              Ekosistem pertukaran keahlian untuk komunitas UMKM Indonesia.
+            </p>
+          </div>
+          <nav className="footer-links" aria-label="Footer links">
+            <Link href="/marketplace">Marketplace</Link>
+            <Link href="/projects">UMKM Board</Link>
+            <Link href="/dashboard/learner">Learner</Link>
+            <Link href="/dashboard/mentor">Mentor</Link>
+            <Link href="/login">Log in</Link>
+            <Link href="/register">Sign up</Link>
+          </nav>
+        </div>
+      </footer>
     </>
   );
 }
@@ -59,7 +94,7 @@ export function PageIntro({
   eyebrow,
   title,
   description,
-  action
+  action,
 }: {
   eyebrow: string;
   title: string;
@@ -81,5 +116,9 @@ export function PageIntro({
 }
 
 export function EmptyNotice({ children }: { children: ReactNode }) {
-  return <div className="rounded-xl border border-hairline bg-surface-1 p-6 text-ink-muted">{children}</div>;
+  return (
+    <div className="rounded-xl border border-hairline bg-surface-1 p-6 text-ink-muted">
+      {children}
+    </div>
+  );
 }

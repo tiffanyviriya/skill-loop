@@ -36,7 +36,7 @@ function txLabel(type: string): string {
 export default async function LearnerDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ booked?: string; cancelled?: string; reviewed?: string; error?: string; mode?: string }>;
+  searchParams: Promise<{ booked?: string; cancelled?: string; reviewed?: string; error?: string; mode?: string; topup?: string; amount?: string }>;
 }) {
   const user = await requireUser(["learner", "admin"]);
   const params = await searchParams;
@@ -160,6 +160,7 @@ export default async function LearnerDashboardPage({
         {params.booked && <p className="auth-success mb-4">Booking confirmed! Check your bookings below.</p>}
         {params.cancelled === "1" && <p className="auth-success mb-4">Booking cancelled and tokens refunded to your balance.</p>}
         {params.reviewed && <p className="auth-success mb-4">Review submitted successfully. Thank you!</p>}
+        {params.topup === "success" && <p className="auth-success mb-4">Top-up berhasil! {params.amount} token telah ditambahkan ke saldo kamu.</p>}
         {params.mode === "seed-demo" && <p className="auth-error mb-4">This action requires a database connection (demo mode).</p>}
 
         <div className="dashboard-grid">
@@ -202,6 +203,7 @@ export default async function LearnerDashboardPage({
                 <Coins size={22} />
                 <span>Token balance</span>
                 <strong>{user.tokenBalance}</strong>
+                <Link className="button-fin mt-3 text-xs min-h-[34px]" href="/topup">Top up token</Link>
               </article>
               <article className="stat-card accent-blue">
                 <Star size={22} />

@@ -16,7 +16,7 @@
   --color-report-pink: #f56aa8;
   --color-report-lime: #c9f24d;
   --color-report-cyan: #24c7dc;
-  --font-sans: Inter, "Saans Fallback", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: var(--font-inter, Inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 @layer base {
@@ -56,6 +56,15 @@
   textarea {
     border-width: 2px;
     border-color: var(--color-hairline);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--color-brand-blue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-blue) 18%, transparent);
   }
 }
 
@@ -130,7 +139,8 @@
   .button-secondary,
   .button-fin,
   .button-tertiary {
-    @apply inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-transparent px-[18px] py-2.5 text-[15px] font-medium leading-tight transition-transform;
+    @apply inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-transparent px-[18px] py-2.5 text-[15px] font-medium leading-tight;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
     box-shadow: 3px 3px 0 color-mix(in srgb, var(--color-ink) 16%, transparent);
   }
 
@@ -154,6 +164,24 @@
   .button-secondary:hover,
   .button-fin:hover {
     @apply -translate-y-0.5;
+    box-shadow: 4px 4px 0 color-mix(in srgb, var(--color-ink) 20%, transparent);
+  }
+
+  .button-primary:active,
+  .button-secondary:active,
+  .button-fin:active,
+  .button-tertiary:active {
+    @apply translate-y-0;
+    box-shadow: 1px 1px 0 color-mix(in srgb, var(--color-ink) 16%, transparent);
+  }
+
+  .button-primary:disabled,
+  .button-secondary:disabled,
+  .button-fin:disabled,
+  .button-tertiary:disabled,
+  button[disabled] {
+    @apply cursor-not-allowed opacity-50;
+    transform: none;
   }
 
   .section {
@@ -438,19 +466,121 @@
     @apply rounded-lg border-2 border-report-green bg-white px-3 py-2 text-sm text-report-green;
   }
 
+  /* ── Utility ── */
+  .text-muted {
+    @apply text-ink-muted;
+  }
+
+  /* ── Card title — prevents the h2 global from being enormous inside cards ── */
+  .card-title {
+    @apply mb-1 text-[18px] font-semibold leading-snug tracking-[-0.2px];
+  }
+
+  /* ── Panel header ── */
+  .panel-header {
+    @apply mb-4 flex items-center justify-between gap-4 pb-3;
+    border-bottom: 2px solid color-mix(in srgb, var(--color-hairline) 40%, transparent);
+  }
+
+  /* ── Mobile nav toggle button ── */
+  .nav-mobile-toggle {
+    @apply hidden h-9 w-9 cursor-pointer items-center justify-center rounded-lg border-2 border-hairline bg-surface-1;
+    transition: background 0.15s ease;
+  }
+
+  .nav-mobile-toggle:hover {
+    background: color-mix(in srgb, var(--color-report-blue) 8%, var(--color-surface-1));
+  }
+
+  /* ── Mobile nav overlay ── */
+  .nav-overlay {
+    @apply fixed inset-0 z-30 hidden;
+    background: color-mix(in srgb, var(--color-ink) 50%, transparent);
+    backdrop-filter: blur(2px);
+  }
+
+  .nav-overlay.open {
+    @apply block;
+  }
+
+  /* ── Mobile nav drawer ── */
+  .nav-drawer {
+    @apply fixed right-0 top-0 z-40 flex h-full w-[min(320px,90vw)] flex-col border-l-[3px] border-hairline bg-canvas;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+
+  .nav-drawer.open {
+    transform: translateX(0);
+  }
+
+  .nav-drawer-header {
+    @apply flex items-center justify-between border-b-[3px] border-hairline px-5 py-4;
+  }
+
+  .nav-drawer-links {
+    @apply flex flex-col p-4 gap-1;
+  }
+
+  .nav-drawer-link {
+    @apply block rounded-lg px-3 py-3 text-sm font-medium text-ink-muted;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  .nav-drawer-link:hover {
+    background: color-mix(in srgb, var(--color-report-blue) 8%, transparent);
+    color: var(--color-brand-blue);
+  }
+
+  .nav-drawer-footer {
+    @apply mt-auto border-t-[3px] border-hairline p-4 grid gap-2;
+  }
+
+  /* ── Desktop nav actions wrapper (hidden on mobile) ── */
+  .nav-desktop-actions {
+    @apply flex items-center gap-3;
+  }
+
+  /* ── Footer ── */
   .footer {
-    @apply py-12 text-sm text-ink-subtle;
+    @apply border-t-[3px] border-hairline py-10 text-sm text-ink-subtle;
+  }
+
+  .footer-inner {
+    @apply mx-auto flex w-[min(1280px,calc(100%_-_40px))] flex-wrap items-center justify-between gap-4;
+  }
+
+  .footer-links {
+    @apply flex flex-wrap gap-4;
+  }
+
+  .footer-links a {
+    @apply text-ink-muted;
+    transition: color 0.12s ease;
+  }
+
+  .footer-links a:hover {
+    color: var(--color-brand-blue);
   }
 }
 
 @media (max-width: 900px) {
   .top-nav {
-    @apply grid-cols-1 px-5 py-3.5;
+    @apply grid-cols-[auto_1fr_auto] px-4 py-3;
   }
 
-  .nav-links,
-  .nav-actions {
-    @apply flex-wrap justify-start;
+  /* hide desktop nav links & actions, show hamburger */
+  .nav-links {
+    @apply hidden;
+  }
+
+  .nav-desktop-actions {
+    @apply hidden;
+  }
+
+  .nav-mobile-toggle {
+    @apply flex;
   }
 
   .hero,
@@ -485,5 +615,9 @@
 
   .auth-card {
     @apply grid-cols-1 p-6;
+  }
+
+  .footer-inner {
+    @apply flex-col items-start gap-3;
   }
 }
