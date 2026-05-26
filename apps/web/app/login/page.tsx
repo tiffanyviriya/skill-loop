@@ -28,7 +28,7 @@ export default async function LoginPage({
         <form className="auth-form" action="/api/auth/login" method="post">
           {params.error === "invalid" ? <p className="auth-error">Invalid email or password. Try one of the demo users below.</p> : null}
           {params.error === "server" ? <p className="auth-error">Login is temporarily unavailable. Please try again after the workspace is synced.</p> : null}
-          {params.registered ? <p className="auth-success">Account created. You can log in now.</p> : null}
+          {params.registered && params.registered !== "seed-demo" ? <p className="auth-success">Account created. You can log in now.</p> : null}
           <label>
             Email
             <input name="email" type="email" placeholder="learner@skillloop.test" required />

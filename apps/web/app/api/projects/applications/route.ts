@@ -21,10 +21,16 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL(`/projects?applied=${projectId}&mode=seed-demo`, request.url), 303);
   }
 
+  const proposal = String(form.get("proposal") ?? "").trim();
+
+  if (!proposal) {
+    return NextResponse.redirect(new URL(`/projects?error=no-proposal`, request.url), 303);
+  }
+
   await db.insert(projectApplications).values({
     projectId,
     applicantId: user.id,
-    proposal: "I can help with this project and share portfolio examples.",
+    proposal,
     status: "submitted"
   });
 

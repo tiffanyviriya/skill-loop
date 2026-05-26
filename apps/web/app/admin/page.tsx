@@ -1,10 +1,22 @@
 import { ShieldCheck, UserX } from "lucide-react";
+import { eq } from "drizzle-orm";
+import { db, users } from "@skill-loop/db";
 import { seedGovernanceRules, seedProjects, seedSkills } from "@skill-loop/domain";
 import { requireUser } from "../_lib/auth";
 import { PageIntro, PlatformShell } from "../_components/shell";
 
 export default async function AdminPage() {
   await requireUser(["admin"]);
+
+  type MentorRow = { id: string; name: string; trustScore: number };
+  let mentorList: MentorRow[] = [];
+
+  if (process.env.POSTGRES_URL) {
+    mentorList = await db
+      .select({ id: users.id, name: users.name, trustScore: users.trustScore })
+      .from(users)
+      .where(eq(users.role, "mentor"));
+  }
 
   return (
     <PlatformShell>
@@ -21,20 +33,44 @@ export default async function AdminPage() {
             <ShieldCheck size={22} />
           </div>
           <div className="list-stack">
-            {seedSkills.map((skill) => (
-              <div className="list-row" key={skill.mentorId}>
-                <div>
-                  <strong>{skill.mentorName}</strong>
-                  <p>{skill.sessionsCompleted} sessions · trust {skill.trustScore}</p>
+            {process.env.POSTGRES_URL ? (
+              mentorList.length === 0 ? (
+                <p className="text-sm text-muted px-1">No mentors registered yet.</p>
+              ) : (
+                mentorList.map((mentor) => {
+                  const isVerified = mentor.trustScore >= 90;
+                  return (
+                    <div className="list-row" key={mentor.id}>
+                      <div>
+                        <strong>{mentor.name}</strong>
+                        <p>trust {mentor.trustScore}</p>
+                      </div>
+                      <form action="/api/admin/mentor-verification" method="post">
+                        <input type="hidden" name="mentorId" value={mentor.id} />
+                        <button className={isVerified ? "badge green" : "badge orange"} type="submit">
+                          {isVerified ? "verified" : "community"}
+                        </button>
+                      </form>
+                    </div>
+                  );
+                })
+              )
+            ) : (
+              seedSkills.map((skill) => (
+                <div className="list-row" key={skill.mentorId}>
+                  <div>
+                    <strong>{skill.mentorName}</strong>
+                    <p>{skill.sessionsCompleted} sessions · trust {skill.trustScore}</p>
+                  </div>
+                  <form action="/api/admin/mentor-verification" method="post">
+                    <input type="hidden" name="mentorId" value={skill.mentorId} />
+                    <button className={skill.mentorBadge === "verified" ? "badge green" : "badge orange"} type="submit">
+                      {skill.mentorBadge}
+                    </button>
+                  </form>
                 </div>
-                <form action="/api/admin/mentor-verification" method="post">
-                  <input type="hidden" name="mentorId" value={skill.mentorId} />
-                  <button className={skill.mentorBadge === "verified" ? "badge green" : "badge orange"} type="submit">
-                    {skill.mentorBadge}
-                  </button>
-                </form>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </article>
 

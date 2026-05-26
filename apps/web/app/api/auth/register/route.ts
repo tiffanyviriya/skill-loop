@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   }
 
   if (!process.env.POSTGRES_URL) {
-    return NextResponse.redirect(new URL("/login?registered=seed-demo", request.url), 303);
+    return NextResponse.redirect(new URL("/register?error=demo-mode", request.url), 303);
   }
 
   try {

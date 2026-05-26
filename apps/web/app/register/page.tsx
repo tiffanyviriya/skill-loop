@@ -5,7 +5,7 @@ import { getCurrentUser, roleHomePath } from "../_lib/auth";
 export default async function RegisterPage({
   searchParams
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; registered?: string }>;
 }) {
   const user = await getCurrentUser();
 
@@ -28,6 +28,7 @@ export default async function RegisterPage({
           {params.error === "invalid" ? <p className="auth-error">Please complete all fields and use a password with at least 8 characters.</p> : null}
           {params.error === "exists" ? <p className="auth-error">That email is already registered. Try logging in instead.</p> : null}
           {params.error === "server" ? <p className="auth-error">Account creation is temporarily unavailable. Please try again after the workspace is synced.</p> : null}
+          {params.error === "demo-mode" ? <p className="auth-error">Registration requires a database connection. Use a demo account on the <Link href="/login" className="underline">login page</Link> instead.</p> : null}
           <label>
             Name
             <input name="name" placeholder="Your name" required />
