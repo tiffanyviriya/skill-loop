@@ -53,6 +53,8 @@ export default async function SkillDetailPage({
   const user = await getCurrentUser();
 
   let skill: SkillDetail | null = null;
+  // true when DB is connected but the skill only exists in seed data (not yet seeded to DB)
+  let isSeedFallback = false;
 
   if (process.env.POSTGRES_URL) {
     const [row] = await db
@@ -91,9 +93,10 @@ export default async function SkillDetailPage({
         schedule: [],
       };
     } else {
-      // DB connected but skill not found — try seed data (e.g. example classes)
+      // DB connected but skill not in DB — fall back to seed example, mark as fallback
       const seed = getSkillById(id);
       if (seed) {
+        isSeedFallback = true;
         skill = {
           id: seed.id,
           mentorId: seed.mentorId,
@@ -205,6 +208,9 @@ export default async function SkillDetailPage({
           {bookingError === "already-booked" && (
             <p className="auth-error mb-3">You already have an active booking for this class.</p>
           )}
+          {bookingError === "not-in-db" && (
+            <p className="auth-error mb-3">Kelas ini belum ada di database. Seed dulu via Admin panel.</p>
+          )}
 
           <div className="mb-5 grid gap-3">
             <span className="flex items-center gap-2">
@@ -223,7 +229,21 @@ export default async function SkillDetailPage({
             </span>
           </div>
 
-          {!user ? (
+          {/* Seed-fallback banner — DB connected but skill not yet in DB */}
+          {isSeedFallback ? (
+            <div className="grid gap-3">
+              <div className="rounded-xl border-[3px] border-fin-orange bg-white p-4 text-sm grid gap-2">
+                <p className="font-semibold text-fin-orange">⚠ Kelas contoh — belum bisa di-booking</p>
+                <p className="text-ink-muted">
+                  Database kamu terhubung tapi kelas ini belum ada di dalamnya.
+                  Jalankan <strong>Seed database</strong> di Admin panel untuk mengaktifkan booking.
+                </p>
+              </div>
+              <Link className="button-fin" href="/admin">
+                Pergi ke Admin panel → Seed database
+              </Link>
+            </div>
+          ) : !user ? (
             <Link className="button-primary" href="/login">Log in to book</Link>
           ) : user.id === skill.mentorId ? (
             <p className="rounded-lg border-2 border-hairline bg-canvas p-4 text-sm text-ink-muted">

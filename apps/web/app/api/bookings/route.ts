@@ -37,14 +37,19 @@ export async function POST(request: Request) {
   if (process.env.POSTGRES_URL) {
     const [dbSkill] = await db.select().from(skills).where(eq(skills.id, skillId)).limit(1);
     if (!dbSkill) {
-      return NextResponse.json({ ok: false, message: "Skill not found" }, { status: 404 });
+      // Skill not in DB — could be a seed example class that hasn't been seeded yet
+      return NextResponse.redirect(
+        new URL(`/marketplace/${skillId}?booking=not-in-db`, request.url), 303
+      );
     }
     skillMentorId = dbSkill.mentorId;
     priceToken = dbSkill.priceToken;
   } else {
     const seedSkill = getSkillById(skillId);
     if (!seedSkill) {
-      return NextResponse.json({ ok: false, message: "Skill not found" }, { status: 404 });
+      return NextResponse.redirect(
+        new URL(`/marketplace?booking=not-found`, request.url), 303
+      );
     }
     skillMentorId = seedSkill.mentorId;
     priceToken = seedSkill.priceToken;
