@@ -5,6 +5,7 @@ import { db, bookings, skills, walletTransactions, reviews, users } from "@skill
 import { seedBookings, seedSkills, seedWalletTransactions } from "@skill-loop/domain";
 import { requireUser } from "../../_lib/auth";
 import { PageIntro, PlatformShell } from "../../_components/shell";
+import { SessionConfirm } from "../../_components/SessionConfirm";
 
 type DisplayBooking = {
   id: string;
@@ -36,7 +37,7 @@ function txLabel(type: string): string {
 export default async function LearnerDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ booked?: string; cancelled?: string; reviewed?: string; error?: string; mode?: string; topup?: string; amount?: string }>;
+  searchParams: Promise<{ booked?: string; cancelled?: string; reviewed?: string; completed?: string; error?: string; mode?: string; topup?: string; amount?: string }>;
 }) {
   const user = await requireUser(["learner", "admin"]);
   const params = await searchParams;
@@ -157,11 +158,12 @@ export default async function LearnerDashboardPage({
       />
 
       <section className="container pb-24">
-        {params.booked && <p className="auth-success mb-4">Booking confirmed! Check your bookings below.</p>}
-        {params.cancelled === "1" && <p className="auth-success mb-4">Booking cancelled and tokens refunded to your balance.</p>}
-        {params.reviewed && <p className="auth-success mb-4">Review submitted successfully. Thank you!</p>}
+        {params.booked && <p className="auth-success mb-4">Booking confirmed! Cek sesi kamu di bawah.</p>}
+        {params.cancelled === "1" && <p className="auth-success mb-4">Booking dibatalkan dan token dikembalikan ke saldo kamu.</p>}
+        {params.reviewed && <p className="auth-success mb-4">Review berhasil dikirim. Terima kasih!</p>}
+        {params.completed === "1" && <p className="auth-success mb-4">Sesi ditandai selesai! Kamu sekarang bisa menulis review untuk mentor.</p>}
         {params.topup === "success" && <p className="auth-success mb-4">Top-up berhasil! {params.amount} token telah ditambahkan ke saldo kamu.</p>}
-        {params.mode === "seed-demo" && <p className="auth-error mb-4">This action requires a database connection (demo mode).</p>}
+        {params.mode === "seed-demo" && <p className="auth-error mb-4">Aksi ini memerlukan koneksi database (demo mode).</p>}
 
         <div className="dashboard-grid">
           <div className="product-card">
@@ -173,27 +175,36 @@ export default async function LearnerDashboardPage({
               {displayBookings.length === 0 ? (
                 <p className="text-sm text-muted px-1">No bookings yet. <Link href="/marketplace" className="underline">Browse classes</Link>.</p>
               ) : (
-                displayBookings.map((booking) => (
-                  <div className="list-row" key={booking.id}>
-                    <div>
-                      <strong>{booking.skillTitle}</strong>
-                      <p>{booking.scheduleTime} · {booking.mentorName}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={
-                        booking.status === "completed" ? "badge green" :
-                        booking.status === "cancelled" ? "badge orange" :
-                        "badge blue"
-                      }>{booking.status}</span>
-                      {booking.status === "pending" && hasDb && (
-                        <form action={`/api/bookings/${booking.id}`} method="post">
-                          <input type="hidden" name="action" value="cancel" />
-                          <button className="badge orange" type="submit">Cancel</button>
-                        </form>
+                displayBookings.map((booking) => {
+                  const isActive = booking.status === "pending" || booking.status === "confirmed";
+                  return (
+                    <div className="list-row flex-col items-start gap-2" key={booking.id}>
+                      <div className="flex w-full items-start justify-between gap-2">
+                        <div>
+                          <strong>{booking.skillTitle}</strong>
+                          <p>{booking.scheduleTime} · {booking.mentorName}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <span className={
+                            booking.status === "completed" ? "badge green" :
+                            booking.status === "cancelled" ? "badge orange" :
+                            "badge blue"
+                          }>{booking.status}</span>
+                          {booking.status === "pending" && hasDb && (
+                            <form action={`/api/bookings/${booking.id}`} method="post">
+                              <input type="hidden" name="action" value="cancel" />
+                              <button className="badge orange" type="submit">Cancel</button>
+                            </form>
+                          )}
+                        </div>
+                      </div>
+                      {/* Konfirmasi sesi selesai — hanya untuk booking aktif & DB mode */}
+                      {isActive && hasDb && (
+                        <SessionConfirm bookingId={booking.id} />
                       )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

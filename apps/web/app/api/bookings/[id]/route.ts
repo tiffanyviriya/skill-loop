@@ -74,11 +74,17 @@ export async function POST(
   }
 
   if (action === "complete") {
-    if (booking.mentorId !== user.id && user.role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard/mentor?error=not-yours", request.url), 303);
+    // Both the mentor AND the learner can confirm completion
+    const isMentor  = booking.mentorId  === user.id;
+    const isLearner = booking.learnerId === user.id;
+    const isAdmin   = user.role === "admin";
+
+    if (!isMentor && !isLearner && !isAdmin) {
+      return NextResponse.redirect(new URL("/dashboard/learner?error=not-yours", request.url), 303);
     }
     if (booking.status === "completed" || booking.status === "cancelled") {
-      return NextResponse.redirect(new URL("/dashboard/mentor?error=already-done", request.url), 303);
+      const dest = isMentor ? "/dashboard/mentor?error=already-done" : "/dashboard/learner?error=already-done";
+      return NextResponse.redirect(new URL(dest, request.url), 303);
     }
 
     await db.transaction(async (tx) => {
@@ -101,16 +107,20 @@ export async function POST(
           .where(eq(users.id, booking.mentorId));
 
         await tx.insert(walletTransactions).values({
-          senderId: booking.learnerId,
+          senderId:   booking.learnerId,
           receiverId: booking.mentorId,
-          amount: holdTx.amount,
-          type: "booking_release",
+          amount:     holdTx.amount,
+          type:       "booking_release",
           bookingId,
         });
       }
     });
 
-    return NextResponse.redirect(new URL("/dashboard/mentor?completed=1", request.url), 303);
+    // Redirect to whichever dashboard triggered the action
+    const returnDash = isLearner && !isMentor
+      ? "/dashboard/learner?completed=1"
+      : "/dashboard/mentor?completed=1";
+    return NextResponse.redirect(new URL(returnDash, request.url), 303);
   }
 
   return NextResponse.redirect(new URL("/dashboard/learner", request.url), 303);
