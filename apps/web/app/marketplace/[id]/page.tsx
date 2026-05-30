@@ -24,21 +24,31 @@ type SkillDetail = {
   schedule: string[];
 };
 
+/** Returns ISO datetime strings — safe for new Date() parsing in all environments */
 function upcomingSlots(count = 3): string[] {
   const result: string[] = [];
   const d = new Date();
   d.setDate(d.getDate() + 1);
+  d.setHours(16, 0, 0, 0);
   while (result.length < count) {
-    const label = d.toLocaleDateString("en-US", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    result.push(`${label} at 16:00`);
+    result.push(d.toISOString());
     d.setDate(d.getDate() + 2);
   }
   return result;
+}
+
+/** Human-readable label for a schedule slot (ISO or legacy string) */
+function slotLabel(slot: string): string {
+  const d = new Date(slot);
+  if (isNaN(d.getTime())) return slot; // legacy seed strings — display as-is
+  return d.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default async function SkillDetailPage({
@@ -136,11 +146,13 @@ export default async function SkillDetailPage({
 
   if (!skill) notFound();
 
-  // Filter to future dates only, fall back to generated slots
+  // Keep only future slots; fall back to generated ISO slots
   const now = new Date();
   const futureSeeds = skill.schedule.filter((s) => {
-    try { return new Date(s) > now; } catch { return false; }
+    const d = new Date(s);
+    return !isNaN(d.getTime()) && d > now;
   });
+  // Always use generated slots — they are ISO strings guaranteed parseable
   const schedule = futureSeeds.length > 0 ? futureSeeds : upcomingSlots(3);
 
   const canBook = user && (user.role === "learner" || user.role === "admin") && user.id !== skill.mentorId;
@@ -205,6 +217,9 @@ export default async function SkillDetailPage({
           {bookingError === "already-booked" && (
             <p className="auth-error mb-3">You already have an active booking for this class.</p>
           )}
+          {bookingError === "invalid-schedule" && (
+            <p className="auth-error mb-3">Jadwal tidak valid. Pilih jadwal dari dropdown dan coba lagi.</p>
+          )}
           <div className="mb-5 grid gap-3">
             <span className="flex items-center gap-2">
               <Coins size={18} className="text-fin-orange" />
@@ -248,10 +263,10 @@ export default async function SkillDetailPage({
               </div>
 
               <label className="grid gap-2 text-sm font-medium">
-                Schedule
+                Pilih jadwal
                 <select className="rounded-lg border border-hairline bg-white px-3 py-3" name="scheduleTime">
                   {schedule.map((slot) => (
-                    <option key={slot} value={slot}>{slot}</option>
+                    <option key={slot} value={slot}>{slotLabel(slot)}</option>
                   ))}
                 </select>
               </label>

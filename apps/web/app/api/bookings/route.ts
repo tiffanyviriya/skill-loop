@@ -132,12 +132,20 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL(`/marketplace/${skillId}?booking=already-booked`, request.url), 303);
   }
 
+  // Parse and validate scheduleTime — must be a valid future-ish date
+  const parsedSchedule = new Date(scheduleTime);
+  if (isNaN(parsedSchedule.getTime())) {
+    return NextResponse.redirect(
+      new URL(`/marketplace/${skillId}?booking=invalid-schedule`, request.url), 303
+    );
+  }
+
   await db.transaction(async (tx) => {
     const [newBooking] = await tx.insert(bookings).values({
       skillId,
       learnerId: user.id,
       mentorId: skillMentorId,
-      scheduleTime: new Date(scheduleTime),
+      scheduleTime: parsedSchedule,
       status: "pending",
     }).returning({ id: bookings.id });
 
