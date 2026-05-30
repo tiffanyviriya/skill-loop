@@ -58,23 +58,26 @@ export default async function MarketplacePage({
   let displaySkills: DisplaySkill[] = [];
   let categories: string[] = [];
 
+  // Helper to map seed skills → DisplaySkill
+  const seedToDisplay = (s: typeof seedSkills[number]): DisplaySkill => ({
+    id: s.id,
+    title: s.title,
+    description: s.description,
+    category: s.category,
+    priceToken: s.priceToken,
+    mode: s.mode,
+    location: s.location,
+    mentorName: s.mentorName,
+    mentorBadge: s.mentorBadge,
+    mentorRating: s.mentorRating,
+    sessionsCompleted: s.sessionsCompleted,
+  });
+
   if (!process.env.POSTGRES_URL) {
     const filtered = activeCategory
       ? seedSkills.filter((s) => s.category === activeCategory)
       : seedSkills;
-    displaySkills = filtered.map((s) => ({
-      id: s.id,
-      title: s.title,
-      description: s.description,
-      category: s.category,
-      priceToken: s.priceToken,
-      mode: s.mode,
-      location: s.location,
-      mentorName: s.mentorName,
-      mentorBadge: s.mentorBadge,
-      mentorRating: s.mentorRating,
-      sessionsCompleted: s.sessionsCompleted,
-    }));
+    displaySkills = filtered.map(seedToDisplay);
     categories = [...new Set(seedSkills.map((s) => s.category))];
   } else {
     const query = db
@@ -96,22 +99,28 @@ export default async function MarketplacePage({
       ? await query.where(eq(skills.category, activeCategory))
       : await query;
 
-    displaySkills = rows.map((r) => ({
-      id: r.id,
-      title: r.title,
-      description: r.description,
-      category: r.category,
-      priceToken: r.priceToken,
-      mode: r.mode,
-      location: r.location,
-      mentorName: r.mentorName,
-      mentorBadge: r.mentorTrustScore >= 90 ? "verified" : "community",
-      mentorRating: null,
-      sessionsCompleted: null,
-    }));
+    // If DB is empty, fall back to seed examples so marketplace is never blank
+    if (rows.length === 0 && !activeCategory) {
+      displaySkills = seedSkills.map(seedToDisplay);
+      categories = [...new Set(seedSkills.map((s) => s.category))];
+    } else {
+      displaySkills = rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        description: r.description,
+        category: r.category,
+        priceToken: r.priceToken,
+        mode: r.mode,
+        location: r.location,
+        mentorName: r.mentorName,
+        mentorBadge: r.mentorTrustScore >= 90 ? "verified" : "community",
+        mentorRating: null,
+        sessionsCompleted: null,
+      }));
 
-    const catRows = await db.selectDistinct({ category: skills.category }).from(skills);
-    categories = catRows.map((r) => r.category);
+      const catRows = await db.selectDistinct({ category: skills.category }).from(skills);
+      categories = catRows.map((r) => r.category);
+    }
   }
 
   // ── My Bookings ─────────────────────────────────────────────────────────

@@ -90,6 +90,27 @@ export default async function SkillDetailPage({
         location: row.location ?? "Online",
         schedule: [],
       };
+    } else {
+      // DB connected but skill not found — try seed data (e.g. example classes)
+      const seed = getSkillById(id);
+      if (seed) {
+        skill = {
+          id: seed.id,
+          mentorId: seed.mentorId,
+          mentorName: seed.mentorName,
+          mentorBadge: seed.mentorBadge,
+          mentorRating: seed.mentorRating,
+          sessionsCompleted: seed.sessionsCompleted,
+          trustScore: seed.trustScore,
+          title: seed.title,
+          description: seed.description,
+          category: seed.category,
+          priceToken: seed.priceToken,
+          mode: seed.mode,
+          location: seed.location,
+          schedule: seed.schedule,
+        };
+      }
     }
   } else {
     const seed = getSkillById(id);

@@ -1,21 +1,35 @@
-import { ShieldCheck, UserX } from "lucide-react";
-import { eq } from "drizzle-orm";
-import { db, users } from "@skill-loop/db";
+import Link from "next/link";
+import { Database, ShieldCheck, UserX } from "lucide-react";
+import { count, eq } from "drizzle-orm";
+import { db, users, skills } from "@skill-loop/db";
 import { seedGovernanceRules, seedProjects, seedSkills } from "@skill-loop/domain";
 import { requireUser } from "../_lib/auth";
 import { PageIntro, PlatformShell } from "../_components/shell";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ seed?: string; users?: string; skills?: string }>;
+}) {
   await requireUser(["admin"]);
+  const params = await searchParams;
 
   type MentorRow = { id: string; name: string; trustScore: number };
   let mentorList: MentorRow[] = [];
+
+  let dbUserCount = 0;
+  let dbSkillCount = 0;
 
   if (process.env.POSTGRES_URL) {
     mentorList = await db
       .select({ id: users.id, name: users.name, trustScore: users.trustScore })
       .from(users)
       .where(eq(users.role, "mentor"));
+
+    const [uc] = await db.select({ n: count() }).from(users);
+    const [sc] = await db.select({ n: count() }).from(skills);
+    dbUserCount = uc?.n ?? 0;
+    dbSkillCount = sc?.n ?? 0;
   }
 
   return (
@@ -90,6 +104,77 @@ export default async function AdminPage() {
               </div>
             ))}
           </div>
+        </article>
+
+        {/* ── Seed database ───────────────────────────────────────────── */}
+        <article className="product-card col-span-2 max-[900px]:col-span-1">
+          <div className="panel-header">
+            <h2 className="card-title">Database seeding</h2>
+            <Database size={20} />
+          </div>
+
+          {params.seed === "done" && (
+            <p className="auth-success mb-4">
+              Seed berhasil! {params.users} user dan {params.skills} kelas contoh ditambahkan ke database.
+            </p>
+          )}
+          {params.seed === "partial" && (
+            <p className="auth-error mb-4">
+              Seed sebagian berhasil — beberapa data mungkin sudah ada sebelumnya.
+            </p>
+          )}
+          {params.seed === "demo-mode" && (
+            <p className="auth-error mb-4">Seed memerlukan koneksi database nyata.</p>
+          )}
+
+          {!process.env.POSTGRES_URL ? (
+            <p className="text-sm text-muted">
+              Fitur ini memerlukan koneksi database (<code className="rounded bg-canvas px-1 py-0.5 text-xs">POSTGRES_URL</code>).
+              Saat ini berjalan dalam seed/demo mode.
+            </p>
+          ) : (
+            <div className="grid gap-4">
+              {/* Status */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-xl border-[3px] border-hairline bg-canvas p-4 text-center">
+                  <p className="text-2xl font-bold">{dbUserCount}</p>
+                  <p className="text-sm text-muted">Users di DB</p>
+                </div>
+                <div className="rounded-xl border-[3px] border-hairline bg-canvas p-4 text-center">
+                  <p className="text-2xl font-bold">{dbSkillCount}</p>
+                  <p className="text-sm text-muted">Kelas di DB</p>
+                </div>
+                <div className="rounded-xl border-[3px] border-hairline bg-canvas p-4 text-center">
+                  <p className={`text-2xl font-bold ${dbSkillCount > 0 ? "text-report-green" : "text-fin-orange"}`}>
+                    {dbSkillCount > 0 ? "✓ Ready" : "Kosong"}
+                  </p>
+                  <p className="text-sm text-muted">Status marketplace</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border-[3px] border-hairline bg-canvas p-4 text-sm grid gap-2">
+                <p className="font-medium">Yang akan di-seed:</p>
+                <ul className="text-ink-muted grid gap-1">
+                  <li>• 7 demo user (learner, 4 mentor, business, admin) — password: <code className="rounded bg-surface-1 px-1">skillloop123</code></li>
+                  <li>• 4 kelas contoh (Design, Business, Career, Coding)</li>
+                  <li>• Data yang sudah ada di-skip otomatis (aman dijalankan berulang)</li>
+                </ul>
+              </div>
+
+              <form action="/api/seed" method="post">
+                <button className="button-fin" type="submit">
+                  <Database size={16} />
+                  Seed database sekarang
+                </button>
+              </form>
+
+              <div className="text-sm text-muted">
+                Setelah seed, login dengan akun demo di halaman{" "}
+                <Link href="/login" className="underline">Login</Link>:
+                <span className="ml-1 font-mono text-xs">learner@skillloop.test / skillloop123</span>
+              </div>
+            </div>
+          )}
         </article>
 
         <article className="cta-banner col-span-2 max-[900px]:col-span-1">
