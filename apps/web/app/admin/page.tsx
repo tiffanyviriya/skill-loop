@@ -14,7 +14,7 @@ export default async function AdminPage({
   await requireUser(["admin"]);
   const params = await searchParams;
 
-  type MentorRow = { id: string; name: string; trustScore: number };
+  type MentorRow = { id: string; name: string; trustScore: number; verified: boolean };
   let mentorList: MentorRow[] = [];
 
   let dbUserCount = 0;
@@ -22,7 +22,7 @@ export default async function AdminPage({
 
   if (process.env.POSTGRES_URL) {
     mentorList = await db
-      .select({ id: users.id, name: users.name, trustScore: users.trustScore })
+      .select({ id: users.id, name: users.name, trustScore: users.trustScore, verified: users.verified })
       .from(users)
       .where(eq(users.role, "mentor"));
 
@@ -52,7 +52,7 @@ export default async function AdminPage({
                 <p className="text-sm text-muted px-1">No mentors registered yet.</p>
               ) : (
                 mentorList.map((mentor) => {
-                  const isVerified = mentor.trustScore >= 90;
+                  const isVerified = mentor.verified;
                   return (
                     <div className="list-row" key={mentor.id}>
                       <div>

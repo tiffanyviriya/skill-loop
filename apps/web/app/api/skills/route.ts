@@ -34,7 +34,8 @@ export async function POST(request: Request) {
   const category = String(form.get("category") ?? "").trim();
   const description = String(form.get("description") ?? "").trim();
   const priceToken = Number(form.get("priceToken") ?? 0);
-  const mode = String(form.get("mode") ?? "online") as "online" | "offline" | "hybrid";
+  const modeInput = String(form.get("mode") ?? "online");
+  const mode = (["online", "offline", "hybrid"].includes(modeInput) ? modeInput : "online") as "online" | "offline" | "hybrid";
   const location = String(form.get("location") ?? "").trim() || null;
 
   const user = await getCurrentUser();

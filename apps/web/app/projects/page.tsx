@@ -130,6 +130,12 @@ export default async function ProjectsPage({
           {params.error === "no-proposal" && (
             <p className="auth-error mb-4">Please write a proposal before applying.</p>
           )}
+          {params.error === "already-applied" && (
+            <p className="auth-error mb-4">Kamu sudah pernah melamar ke proyek ini.</p>
+          )}
+          {params.error === "project-not-found" && (
+            <p className="auth-error mb-4">Proyek tidak ditemukan.</p>
+          )}
           {params.updated === "1" && (
             <p className="auth-success mb-4">Applicant status updated.</p>
           )}

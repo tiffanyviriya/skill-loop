@@ -74,7 +74,8 @@ export async function POST(
   }
 
   if (action === "complete") {
-    // Both the mentor AND the learner can confirm completion
+    // Completion requires BOTH the mentor AND the learner to confirm.
+    // Escrow is only released once both sides agree (admin can force-release).
     const isMentor  = booking.mentorId  === user.id;
     const isLearner = booking.learnerId === user.id;
     const isAdmin   = user.role === "admin";
@@ -82,15 +83,29 @@ export async function POST(
     if (!isMentor && !isLearner && !isAdmin) {
       return NextResponse.redirect(new URL("/dashboard/learner?error=not-yours", request.url), 303);
     }
+
+    const dashboard = isMentor && !isLearner ? "/dashboard/mentor" : "/dashboard/learner";
+
     if (booking.status === "completed" || booking.status === "cancelled") {
-      const dest = isMentor ? "/dashboard/mentor?error=already-done" : "/dashboard/learner?error=already-done";
-      return NextResponse.redirect(new URL(dest, request.url), 303);
+      return NextResponse.redirect(new URL(`${dashboard}?error=already-done`, request.url), 303);
     }
+
+    // Record this party's confirmation. Admin counts as both sides.
+    const mentorCompleted  = booking.mentorCompleted  || isMentor  || isAdmin;
+    const learnerCompleted = booking.learnerCompleted || isLearner || isAdmin;
+    const bothConfirmed    = mentorCompleted && learnerCompleted;
 
     await db.transaction(async (tx) => {
       await tx.update(bookings)
-        .set({ status: "completed" })
+        .set({
+          mentorCompleted,
+          learnerCompleted,
+          status: bothConfirmed ? "completed" : "confirmed",
+        })
         .where(eq(bookings.id, bookingId));
+
+      // Only release escrow on the transition where both sides have confirmed.
+      if (!bothConfirmed) return;
 
       const [holdTx] = await tx
         .select({ amount: walletTransactions.amount })
@@ -116,11 +131,8 @@ export async function POST(
       }
     });
 
-    // Redirect to whichever dashboard triggered the action
-    const returnDash = isLearner && !isMentor
-      ? "/dashboard/learner?completed=1"
-      : "/dashboard/mentor?completed=1";
-    return NextResponse.redirect(new URL(returnDash, request.url), 303);
+    const flag = bothConfirmed ? "completed=1" : "awaiting=1";
+    return NextResponse.redirect(new URL(`${dashboard}?${flag}`, request.url), 303);
   }
 
   return NextResponse.redirect(new URL("/dashboard/learner", request.url), 303);

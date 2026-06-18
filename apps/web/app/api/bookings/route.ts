@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { bookings, db, skills, users, walletTransactions } from "@skill-loop/db";
 import { getSkillById, seedBookings } from "@skill-loop/domain";
 import { getCurrentUser } from "../../_lib/auth";
@@ -31,6 +31,7 @@ async function ensureSeedSkillInDb(skillId: string): Promise<{ mentorId: string;
       role: "mentor",
       tokenBalance: mentor.tokenBalance,
       trustScore: mentor.trustScore,
+      verified: mentor.trustScore >= 90,
     }).onConflictDoNothing();
   }
 
@@ -52,10 +53,23 @@ async function ensureSeedSkillInDb(skillId: string): Promise<{ mentorId: string;
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   if (!process.env.POSTGRES_URL) {
     return NextResponse.json({ source: "seed", data: seedBookings });
   }
-  const rows = await db.select().from(bookings);
+
+  // Admins see everything; everyone else only sees bookings they take part in.
+  const rows = user.role === "admin"
+    ? await db.select().from(bookings)
+    : await db
+        .select()
+        .from(bookings)
+        .where(or(eq(bookings.learnerId, user.id), eq(bookings.mentorId, user.id)));
+
   return NextResponse.json({ source: "database", data: rows });
 }
 

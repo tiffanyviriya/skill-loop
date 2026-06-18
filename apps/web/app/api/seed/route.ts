@@ -143,6 +143,7 @@ export async function POST(request: Request) {
           role: u.role,
           tokenBalance: u.tokenBalance,
           trustScore: u.trustScore,
+          verified: u.role === "mentor" && u.trustScore >= 90,
         })
         .onConflictDoNothing();
       if ((result.rowCount ?? 0) > 0) usersInserted++;

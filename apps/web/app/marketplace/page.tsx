@@ -90,7 +90,7 @@ export default async function MarketplacePage({
         mode: skills.mode,
         location: skills.location,
         mentorName: users.name,
-        mentorTrustScore: users.trustScore,
+        mentorVerified: users.verified,
       })
       .from(skills)
       .innerJoin(users, eq(skills.mentorId, users.id));
@@ -113,7 +113,7 @@ export default async function MarketplacePage({
         mode: r.mode,
         location: r.location,
         mentorName: r.mentorName,
-        mentorBadge: r.mentorTrustScore >= 90 ? "verified" : "community",
+        mentorBadge: r.mentorVerified ? "verified" : "community",
         mentorRating: null,
         sessionsCompleted: null,
       }));

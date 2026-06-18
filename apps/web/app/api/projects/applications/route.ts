@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { db, projectApplications } from "@skill-loop/db";
+import { and, eq } from "drizzle-orm";
+import { db, projectApplications, businessProjects } from "@skill-loop/db";
 import { getCurrentUser } from "../../../_lib/auth";
 
 export const runtime = "nodejs";
@@ -27,12 +28,42 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL(`/projects?error=no-proposal`, request.url), 303);
   }
 
-  await db.insert(projectApplications).values({
-    projectId,
-    applicantId: user.id,
-    proposal,
-    status: "submitted"
-  });
+  // Project must exist (avoids opaque FK errors on bad input).
+  const [project] = await db
+    .select({ id: businessProjects.id })
+    .from(businessProjects)
+    .where(eq(businessProjects.id, projectId))
+    .limit(1);
+
+  if (!project) {
+    return NextResponse.redirect(new URL(`/projects?error=project-not-found`, request.url), 303);
+  }
+
+  // One application per project per applicant.
+  const [existing] = await db
+    .select({ id: projectApplications.id })
+    .from(projectApplications)
+    .where(and(
+      eq(projectApplications.projectId, projectId),
+      eq(projectApplications.applicantId, user.id)
+    ))
+    .limit(1);
+
+  if (existing) {
+    return NextResponse.redirect(new URL(`/projects?error=already-applied`, request.url), 303);
+  }
+
+  try {
+    await db.insert(projectApplications).values({
+      projectId,
+      applicantId: user.id,
+      proposal,
+      status: "submitted"
+    });
+  } catch {
+    // Unique constraint race — treat as duplicate.
+    return NextResponse.redirect(new URL(`/projects?error=already-applied`, request.url), 303);
+  }
 
   return NextResponse.redirect(new URL(`/projects?applied=${projectId}`, request.url), 303);
 }

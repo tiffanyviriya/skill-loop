@@ -25,7 +25,7 @@ type DisplayBooking = {
 export default async function MentorDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ completed?: string; class?: string; error?: string; mode?: string }>;
+  searchParams: Promise<{ completed?: string; awaiting?: string; class?: string; error?: string; mode?: string }>;
 }) {
   const user = await requireUser(["mentor", "admin"]);
   const params = await searchParams;
@@ -119,6 +119,8 @@ export default async function MentorDashboardPage({
       />
 
       {params.completed === "1" && <div className="container"><p className="auth-success mb-4">Session marked as completed. Tokens released to your balance!</p></div>}
+      {params.awaiting === "1" && <div className="container"><p className="auth-success mb-4">Konfirmasi kamu tersimpan. Token dilepas setelah learner juga mengonfirmasi.</p></div>}
+      {params.error === "already-done" && <div className="container"><p className="auth-error mb-4">Sesi ini sudah selesai atau dibatalkan.</p></div>}
       {params.class === "created" && <div className="container"><p className="auth-success mb-4">Class published successfully!</p></div>}
       {params.class === "seed-demo" && <div className="container"><p className="auth-error mb-4">Publishing requires a database connection (demo mode).</p></div>}
       {params.mode === "seed-demo" && <div className="container"><p className="auth-error mb-4">This action requires a database connection (demo mode).</p></div>}

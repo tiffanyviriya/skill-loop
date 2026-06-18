@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
 import { db, users, walletTransactions } from "@skill-loop/db";
-import { requireUser } from "../../../_lib/auth";
+import { requireUser, roleHomePath } from "../../../_lib/auth";
 
 const VALID_AMOUNTS = [50, 100, 200, 500] as const;
 const VALID_METHODS = ["qris", "bank_transfer"] as const;
@@ -50,6 +50,6 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.redirect(
-    new URL(`/dashboard/learner?topup=success&amount=${amount}`, request.url), 303
+    new URL(`${roleHomePath(user.role)}?topup=success&amount=${amount}`, request.url), 303
   );
 }

@@ -37,7 +37,7 @@ function txLabel(type: string): string {
 export default async function LearnerDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ booked?: string; cancelled?: string; reviewed?: string; completed?: string; error?: string; mode?: string; topup?: string; amount?: string }>;
+  searchParams: Promise<{ booked?: string; cancelled?: string; reviewed?: string; completed?: string; awaiting?: string; review?: string; error?: string; mode?: string; topup?: string; amount?: string }>;
 }) {
   const user = await requireUser(["learner", "admin"]);
   const params = await searchParams;
@@ -162,6 +162,8 @@ export default async function LearnerDashboardPage({
         {params.cancelled === "1" && <p className="auth-success mb-4">Booking dibatalkan dan token dikembalikan ke saldo kamu.</p>}
         {params.reviewed && <p className="auth-success mb-4">Review berhasil dikirim. Terima kasih!</p>}
         {params.completed === "1" && <p className="auth-success mb-4">Sesi ditandai selesai! Kamu sekarang bisa menulis review untuk mentor.</p>}
+        {params.awaiting === "1" && <p className="auth-success mb-4">Konfirmasi kamu tersimpan. Sesi selesai setelah mentor juga mengonfirmasi.</p>}
+        {params.review === "already-reviewed" && <p className="auth-error mb-4">Kamu sudah pernah me-review sesi ini.</p>}
         {params.topup === "success" && <p className="auth-success mb-4">Top-up berhasil! {params.amount} token telah ditambahkan ke saldo kamu.</p>}
         {params.mode === "seed-demo" && <p className="auth-error mb-4">Aksi ini memerlukan koneksi database (demo mode).</p>}
 

@@ -1,9 +1,11 @@
 import {
+  boolean,
   integer,
   pgEnum,
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
   varchar
 } from "drizzle-orm/pg-core";
@@ -23,6 +25,7 @@ export const users = pgTable("users", {
   role: userRole("role").notNull().default("learner"),
   tokenBalance: integer("token_balance").notNull().default(100),
   trustScore: integer("trust_score").notNull().default(50),
+  verified: boolean("verified").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 });
 
@@ -45,6 +48,8 @@ export const bookings = pgTable("bookings", {
   mentorId: uuid("mentor_id").notNull().references(() => users.id),
   scheduleTime: timestamp("schedule_time", { withTimezone: true }).notNull(),
   status: bookingStatus("status").notNull().default("pending"),
+  mentorCompleted: boolean("mentor_completed").notNull().default(false),
+  learnerCompleted: boolean("learner_completed").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 });
 
@@ -60,7 +65,7 @@ export const walletTransactions = pgTable("wallet_transactions", {
 
 export const reviews = pgTable("reviews", {
   id: uuid("id").defaultRandom().primaryKey(),
-  bookingId: uuid("booking_id").notNull().references(() => bookings.id),
+  bookingId: uuid("booking_id").notNull().references(() => bookings.id).unique(),
   reviewerId: uuid("reviewer_id").notNull().references(() => users.id),
   mentorId: uuid("mentor_id").notNull().references(() => users.id),
   rating: integer("rating").notNull(),
@@ -86,4 +91,9 @@ export const projectApplications = pgTable("project_applications", {
   proposal: text("proposal").notNull(),
   status: applicationStatus("status").notNull().default("submitted"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
-});
+}, (table) => ({
+  uniqueApplicant: unique("project_applications_project_applicant_unique").on(
+    table.projectId,
+    table.applicantId
+  )
+}));
